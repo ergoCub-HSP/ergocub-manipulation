@@ -32,7 +32,7 @@ tmux new-session -d -s $TMUX_NAME
 tmux send-keys -t $TMUX_NAME "docker exec -it $DOCKER_CONTAINER_NAME bash" Enter
 if [ -n "$SERVER_IP" ] # Variable is non-null
 then
-  tmux send-keys -t $TMUX_NAME "yarp namespace ergocub_test" Enter
+  tmux send-keys -t $TMUX_NAME "yarp namespace ergocub00" Enter
   tmux send-keys -t $TMUX_NAME "yarp conf $SERVER_IP 10000" Enter
 else
   if [ -n "$START_YARP_SERVER" ]
@@ -55,7 +55,7 @@ tmux split-window -v -t $TMUX_NAME
 tmux send-keys -t $TMUX_NAME "docker exec -it $DOCKER_CONTAINER_NAME bash" Enter
 tmux send-keys -t $TMUX_NAME "cd /root/ergocub-manipulation/build/bin" Enter
 tmux send-keys -t $TMUX_NAME "sleep 10" Enter
-tmux send-keys -t $TMUX_NAME "./ergocub_grasp_demo /ergocub /robotology-superbuild/build/install/share/ergoCub/robots/ergoCubSN000/model.urdf" Enter
+tmux send-keys -t $TMUX_NAME "./ergocub_grasp_demo /ergocubSim /robotology-superbuild/build/install/share/ergoCub/robots/ergoCubGazeboV1/model.urdf" Enter
 tmux select-pane -t $TMUX_NAME:0.2
 tmux split-window -v -t $TMUX_NAME
 
