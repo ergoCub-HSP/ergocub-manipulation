@@ -384,11 +384,12 @@ bool iCubBase::grasp_object(const Payload &_payload)
 	else
 	{
 		this->isGrasping = true;                                                            // Set grasp constraint
-		this->payload = _payload;                                                           // Transfer payload information
+//		this->payload = _payload;                                                           // Transfer payload information
 		
-		update_state();                                                                     // This will update the payload pose
+//		update_state();                                                                     // This will update the payload pose
 		
-		return move_object( this->payload.pose(), 5.0 );                                    // Run control on payload pose
+//		return move_object( this->payload.pose(), 5.0 );                                    // Run control on payload pose
+		return true;
 	}
 }
   
