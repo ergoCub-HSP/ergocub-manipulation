@@ -6,14 +6,14 @@
 
 #include <ergoCub.h>
 #include <ergoCubConfigurations.h>
+// #include <iCub2.h>
+// #include <iCub2Configurations.h>
 #include <yarp/os/RpcServer.h>
 
 
-// These are used for setting the length of trajetories
-double longTime =  5.0;
-double shortTime = 2.0;
+double shortTime = 2.5;
 
-// These are reference points with respect to the robot
+// These are reference points with respect to the robot (for erboCub)
 double graspWidth    = 0.15;
 double graspDist     = 0.45;
 double graspRest     = 0.40;
@@ -26,6 +26,20 @@ double graspLow      = graspHeight - 0.1;
 double roll  = 0.0*M_PI/180;
 double pitch = 0.0;
 double yaw   = 0.0*M_PI/180;
+
+// These are reference points with respect to the robot (for iCub2)
+// double graspWidth    = 0.153 / 2.0;
+// double graspDist     = 0.3;
+// double graspRest     = 0.25;
+// double torsoHeight   = 0.63;
+// double nominalHeight = torsoHeight + 0.1;
+// double graspHeight   = nominalHeight;
+// double torsoDist     = 0.3;
+// double graspLow      = graspHeight - 0.05;
+
+// double roll  = 0.0*M_PI/180; // x axis
+// double pitch = 0.0; //  y axis
+// double yaw   = -6.0*M_PI/180; // z axis
 
 Eigen::Isometry3d leftHandGrasp = Eigen::Translation3d(graspDist, graspWidth, graspHeight)
                                 * Eigen::AngleAxisd(-roll,  Eigen::Vector3d::UnitX())
@@ -46,6 +60,9 @@ Eigen::Matrix<double,3,3> inertia = (Eigen::MatrixXd(3,3) << 1e-06,   0.0,   0.0
 std::vector<std::string> jointList = {"torso_roll", "torso_pitch", "torso_yaw",
 			              "l_shoulder_pitch", "l_shoulder_roll", "l_shoulder_yaw", "l_elbow", "l_wrist_yaw", "l_wrist_roll", "l_wrist_pitch",
 		                      "r_shoulder_pitch", "r_shoulder_roll", "r_shoulder_yaw", "r_elbow", "r_wrist_yaw", "r_wrist_roll", "r_wrist_pitch"};
+// std::vector<std::string> jointList = {"torso_pitch", "torso_roll", "torso_yaw",
+// 				      "l_shoulder_pitch", "l_shoulder_roll", "l_shoulder_yaw", "l_elbow", "l_wrist_prosup", "l_wrist_pitch", "l_wrist_yaw",
+// 				      "r_shoulder_pitch", "r_shoulder_roll", "r_shoulder_yaw", "r_elbow", "r_wrist_prosup", "r_wrist_pitch", "r_wrist_yaw"};
 
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -72,6 +89,7 @@ int main(int argc, char *argv[])
 		portList.push_back(portName + "/right_arm");
 
 		ergoCub robot(pathToURDF, jointList, portList);                                     // Create the ergoCub controller
+		// iCub2 robot(pathToURDF, jointList, portList);
 
 		// Configure communication across the yarp network
 		yarp::os::Network yarp;                                                             // First connect to the network
@@ -410,18 +428,35 @@ int main(int argc, char *argv[])
 						output.addString("Girare");
 						
 						std::vector<Eigen::Isometry3d> leftPoses;
+						// for ergoCub
 						leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth+0.10,graspHeight+0.00)));
 						leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth+0.00,graspHeight+0.15)));
 						leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth-0.10,graspHeight+0.00)));
 						leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth+0.00,graspHeight-0.10)));
 						leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth+0.00,graspHeight+0.00)));
+
+						// for iCub2
+						// leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth+0.10,graspHeight+0.00)));
+						// leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth+0.00,graspHeight+0.15)));
+						// leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth-0.10,graspHeight+0.00)));
+						// leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth+0.00,graspHeight-0.05)));
+						// leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth+0.00,graspHeight+0.00)));						
 						
 						std::vector<Eigen::Isometry3d> rightPoses;
+						// for ergoCub						
 						rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth+0.10,graspHeight+0.00)));
 						rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth+0.00,graspHeight+0.15)));
 						rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth-0.10,graspHeight+0.00)));
 						rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth+0.00,graspHeight-0.10)));
 						rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth+0.00,graspHeight+0.00)));
+
+						// for iCub2
+						// rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth+0.10,graspHeight+0.00)));
+						// rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth+0.00,graspHeight+0.15)));
+						// rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth-0.10,graspHeight+0.00)));
+						// rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth+0.00,graspHeight-0.05)));
+						// rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth+0.00,graspHeight+0.00)));
+						
 						
 						std::vector<double> times;
 						times.push_back(1.0*shortTime);
