@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
 					output.addString("Pronto");
 					robot.move_to_position(ready,shortTime);
 
-                    			if (block) yarp::os::Time::delay(shortTime);
+                    			yarp::os::Time::delay(shortTime);
 				}
 				else if(command == "scissor")
 				{
