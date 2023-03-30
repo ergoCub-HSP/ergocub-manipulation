@@ -187,9 +187,11 @@ int main(int argc, char *argv[])
 						if (block)  yarp::os::Time::delay(shortTime);
 					}
 				}
-				else if(command == "test_grasp")
+				else if(command == "testgrasp")
 				{
 					robot.move_to_pose(leftHandGrasp, rightHandGrasp, shortTime);
+
+					output.addString("Grazie");
 
 					yarp::os::Time::delay(shortTime);
 				}
