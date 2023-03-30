@@ -241,6 +241,49 @@ int main(int argc, char *argv[])
                         // yarp::os::Time::delay(3.0*shortTime);
 					}
 				}
+				else if(command == "mgraspround")
+				{
+					if(not robot.is_grasping())
+					{
+                        bool block = input.get(1).asBool();
+
+						output.addString("Grazie");
+
+						robot.move_to_pose(leftHandGrasp, rightHandGrasp, shortTime);
+
+						yarp::os::Time::delay(1.1*shortTime);
+
+						Eigen::Isometry3d boxPose(Eigen::Translation3d(graspDist,0.0,graspHeight)); // Pose of box relative to robot
+
+						robot.grasp_object( Payload( robot.left_hand_pose().inverse()*boxPose, mass, inertia ) );
+
+                        yarp::os::Time::delay(shortTime);
+
+                        // Left/Right motion
+                        std::vector<Eigen::Isometry3d> leftPoses;
+						leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth+0.10,graspHeight+0.00)));
+						leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth+0.00,graspHeight+0.15)));
+						leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth-0.10,graspHeight+0.00)));
+						leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth+0.00,graspHeight-0.05)));
+						leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth+0.00,graspHeight+0.00)));
+
+                        std::vector<Eigen::Isometry3d> rightPoses;
+						rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth+0.10,graspHeight+0.00)));
+						rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth+0.00,graspHeight+0.15)));
+						rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth-0.10,graspHeight+0.00)));
+						rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth+0.00,graspHeight-0.05)));
+						rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth+0.00,graspHeight+0.00)));
+
+						std::vector<double> times;
+						times.push_back(1.0*shortTime);
+						times.push_back(2.0*shortTime);
+						times.push_back(3.0*shortTime);
+						times.push_back(4.0*shortTime);
+						times.push_back(5.0*shortTime);
+
+                        robot.move_to_poses(leftPoses,rightPoses,times);
+					}
+				}
 				else if(command == "testgrasp")
 				{
 					robot.move_to_pose(leftHandGrasp, rightHandGrasp, shortTime);
