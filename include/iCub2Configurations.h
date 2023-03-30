@@ -18,7 +18,7 @@ Eigen::VectorXd idealGrasp = (Eigen::VectorXd(17) <<  0.0,  0.0,  0.00,
                           
 Eigen::VectorXd shake      = (Eigen::VectorXd(17) <<  0.0,  0.0,  0.00,
                                                       0.2,  0.3,  0.00,  0.3,  0.0,  0.0,  0.0,
-                                                     -0.5,  0.4,  0.50,  0.8, -0.5,  0.0,  0.0).finished();
+                                                     -1.04,  0.4,  0.50,  0.8, -0.5,  0.0,  0.0).finished();
                           
 Eigen::VectorXd ready      = (Eigen::VectorXd(17) <<  0.0,  0.0,  0.00,
                                                      -0.2,  0.4,  0.00,  0.8, -0.4,  0.0,  0.0,
@@ -26,10 +26,10 @@ Eigen::VectorXd ready      = (Eigen::VectorXd(17) <<  0.0,  0.0,  0.00,
                           
 Eigen::VectorXd wave1      = (Eigen::VectorXd(17) << -0.0,  0.0,  0.00,
                                                       0.2,  0.5,  0.00,  0.3,  0.0,  0.0,  0.0,
-                                                      0.1,  0.8, -1.00,  1.5,  0.1,  0.0,  0.0).finished();
+                                                      -1.04,  0.76, -0.034,  1.67,  0.92,  -0.3,  0.43).finished();
                             
 Eigen::VectorXd wave2      = (Eigen::VectorXd(17) << -0.0,  0.0,  0.00,
                                                       0.2,  0.5,  0.00,  0.3,  0.0,  0.0,  0.0,
-                                                      0.1,  0.8, -1.00,  1.0,  0.1,  0.0,  0.0).finished();
+                                                      -1.04,  0.76, -0.034,  1.67,  0.92,  -0.3,  -0.29).finished();
 
 #endif
