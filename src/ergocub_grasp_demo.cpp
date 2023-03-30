@@ -179,9 +179,10 @@ int main(int argc, char *argv[])
 						yarp::os::Time::delay(1.1*shortTime);
 
 						Eigen::Isometry3d boxPose(Eigen::Translation3d(graspDist,0.0,graspHeight)); // Pose of box relative to robot
+
 						robot.grasp_object( Payload( robot.left_hand_pose().inverse()*boxPose, mass, inertia ) );
 
-						robot.move_object(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,0.0,graspHeight)),2.0);
+						// robot.move_object(Eigen::Isometry3d(Eigen::Translation3d(graspRest,0.0,graspHeight)),2.0);
 
 						if (block)  yarp::os::Time::delay(shortTime);
 					}
