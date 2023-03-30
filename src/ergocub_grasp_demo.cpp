@@ -202,6 +202,45 @@ int main(int argc, char *argv[])
 						if (block)  yarp::os::Time::delay(shortTime);
 					}
 				}
+				else if(command == "egrasprlc")
+				{
+					if(not robot.is_grasping())
+					{
+                        bool block = input.get(1).asBool();
+
+						output.addString("Grazie");
+
+						robot.move_to_pose(leftHandGrasp, rightHandGrasp, shortTime);
+
+						yarp::os::Time::delay(1.1*shortTime);
+
+						Eigen::Isometry3d boxPose(Eigen::Translation3d(graspDist,0.0,graspHeight)); // Pose of box relative to robot
+
+						robot.grasp_object( Payload( robot.left_hand_pose().inverse()*boxPose, mass, inertia ) );
+
+                        yarp::os::Time::delay(shortTime);
+
+                        // Left/Right motion
+                        std::vector<Eigen::Isometry3d> leftPoses;
+                        leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(graspDist, graspWidth+0.1, graspHeight)));
+                        leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(graspDist, graspWidth-0.1, graspHeight)));
+                        leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(graspRest, graspWidth, graspHeight)));
+
+                        std::vector<Eigen::Isometry3d> rightPoses;
+                        rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(graspDist,-graspWidth+0.1, graspHeight)));
+                        rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(graspDist,-graspWidth-0.1, graspHeight)));
+                        rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(graspRest,-graspWidth, graspHeight)));
+
+						std::vector<double> times;
+                        times.push_back(1.0*shortTime);
+                        times.push_back(2.0*shortTime);
+                        times.push_back(3.0*shortTime);
+
+                        robot.move_to_poses(leftPoses,rightPoses,times);
+
+                        // yarp::os::Time::delay(3.0*shortTime);
+					}
+				}
 				else if(command == "testgrasp")
 				{
 					robot.move_to_pose(leftHandGrasp, rightHandGrasp, shortTime);
