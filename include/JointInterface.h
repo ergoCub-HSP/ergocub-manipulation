@@ -198,9 +198,9 @@ JointInterface::JointInterface(const std::vector<std::string> &jointList,
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 yarp::conf::vocab32_t JointInterface::get_control_mode(const int& joint_index)
 {
-    if ((joint_index == 7) || (joint_index == 8) || (joint_index == 9) ||
-        (joint_index == 14) || (joint_index == 15) || (joint_index == 16))
-        return VOCAB_CM_POSITION;
+    // if ((joint_index == 7) || (joint_index == 8) || (joint_index == 9) ||
+    //     (joint_index == 14) || (joint_index == 15) || (joint_index == 16))
+    //     return VOCAB_CM_POSITION;
 
     return VOCAB_CM_POSITION_DIRECT;
 }
