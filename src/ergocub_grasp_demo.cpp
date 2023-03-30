@@ -16,11 +16,12 @@ double shortTime = 2.0;
 // These are reference points with respect to the robot
 double graspWidth    = 0.15;
 double graspDist     = 0.45;
-double graspRest     = 0.35;
+double graspRest     = 0.40;
 double torsoHeight   = 0.90;
+double torsoDist     = 0.40;
 double nominalHeight = torsoHeight + 0.35;
 double graspHeight   = nominalHeight;
-double torsoDist     = 0.40;
+double graspLow      = graspHeight - 0.1;
 
 double roll  = 0.0*M_PI/180;
 double pitch = 0.0;
@@ -171,11 +172,6 @@ int main(int argc, char *argv[])
 
 						robot.move_to_pose(leftHandGrasp, rightHandGrasp, shortTime);
 						
-						//do
-						//{
-							// Nothing
-						//}while(not robot.is_finished());
-						
 						yarp::os::Time::delay(1.1*shortTime);
 
 						Eigen::Isometry3d boxPose(Eigen::Translation3d(graspDist,0.0,graspHeight)); // Pose of box relative to robot
@@ -302,8 +298,13 @@ int main(int argc, char *argv[])
 				{
 					output.addString("Indietro");
 
-					robot.move_object(Eigen::Isometry3d(Eigen::Translation3d(graspRest,0.0,graspHeight)),
-					                  shortTime);
+					Eigen::Isometry3d leftTarget  = Eigen::Isometry3d(Eigen::Translation3d(graspRest, graspWidth, graspHeight));
+					Eigen::Isometry3d rightTarget = Eigen::Isometry3d(Eigen::Translation3d(graspRest,-graspWidth, graspHeight));
+					
+					robot.move_to_pose(leftTarget,rightTarget,shortTime);
+					
+//					robot.move_object(Eigen::Isometry3d(Eigen::Translation3d(graspRest,0.0,graspHeight)),
+//					                  shortTime);
 
 					yarp::os::Time::delay(shortTime);
 				}
@@ -315,9 +316,14 @@ int main(int argc, char *argv[])
 				else if(command == "down")
 				{
 					output.addString("Giu'");
+					
+					Eigen::Isometry3d leftTarget  = Eigen::Isometry3d(Eigen::Translation3d(graspDist, graspWidth, graspLow));
+					Eigen::Isometry3d rightTarget = Eigen::Isometry3d(Eigen::Translation3d(graspDist,-graspWidth, graspLow));
+					
+					robot.move_to_pose(leftTarget,rightTarget,shortTime);						
 
-					robot.move_object(Eigen::Isometry3d(Eigen::Translation3d(graspDist,0.0,graspHeight-0.05)),
-					                  shortTime);
+//					robot.move_object(Eigen::Isometry3d(Eigen::Translation3d(graspDist,0.0,graspHeight-0.05)),
+//					                  shortTime);
 
 					yarp::os::Time::delay(shortTime);
 				}
@@ -330,17 +336,27 @@ int main(int argc, char *argv[])
 				{
 					output.addString("Avanti");
 
-					robot.move_object(Eigen::Isometry3d(Eigen::Translation3d(graspDist+0.05,0.0,graspHeight)),
-					                  shortTime);
+					Eigen::Isometry3d leftTarget  = Eigen::Isometry3d(Eigen::Translation3d(graspDist, graspWidth, graspHeight));
+					Eigen::Isometry3d rightTarget = Eigen::Isometry3d(Eigen::Translation3d(graspDist,-graspWidth, graspHeight));
+					
+					robot.move_to_pose(leftTarget,rightTarget,shortTime);
+
+//					robot.move_object(Eigen::Isometry3d(Eigen::Translation3d(graspDist+0.05,0.0,graspHeight)),
+//					                  shortTime);
 
 					yarp::os::Time::delay(shortTime);
 				}
 				else if(command == "left")
 				{
 					output.addString("Sinistra");
+					
+					Eigen::Isometry3d leftTarget  = Eigen::Isometry3d(Eigen::Translation3d(graspDist, graspWidth+0.1, graspHeight));
+					Eigen::Isometry3d rightTarget = Eigen::Isometry3d(Eigen::Translation3d(graspDist,-graspWidth+0.1, graspHeight));
+					
+					robot.move_to_pose(leftTarget,rightTarget,shortTime);
 
-					robot.move_object(Eigen::Isometry3d(Eigen::Translation3d(graspDist,0.1,graspHeight)),
-					                  shortTime);
+//					robot.move_object(Eigen::Isometry3d(Eigen::Translation3d(graspDist,0.1,graspHeight)),
+//					                  shortTime);
 
 					yarp::os::Time::delay(shortTime);
 				}
@@ -350,10 +366,15 @@ int main(int argc, char *argv[])
 					{
                 				bool block = input.get(1).asBool();
 
-						output.addString("Capito");
+						output.addString("Capito");			
+						
+						Eigen::Isometry3d leftTarget  = Eigen::Isometry3d(Eigen::Translation3d(graspDist, graspWidth, graspHeight));
+						Eigen::Isometry3d rightTarget = Eigen::Isometry3d(Eigen::Translation3d(graspDist,-graspWidth, graspHeight));
+						
+						robot.move_to_pose(leftTarget,rightTarget,shortTime);						
 
-						robot.move_object(Eigen::Isometry3d(Eigen::Translation3d(graspDist,0.0,graspHeight)),
-						                  shortTime);                       // Move forward to drop off location
+//						robot.move_object(Eigen::Isometry3d(Eigen::Translation3d(graspDist,0.0,graspHeight)),
+//						                  shortTime);                       // Move forward to drop off location
 
 						yarp::os::Time::delay(shortTime);                   // Wait for the motion to complete
 
@@ -367,9 +388,14 @@ int main(int argc, char *argv[])
 				else if(command == "right")
 				{
 					output.addString("Destra");
+					
+					Eigen::Isometry3d leftTarget  = Eigen::Isometry3d(Eigen::Translation3d(graspDist, graspWidth-0.1, graspHeight));
+					Eigen::Isometry3d rightTarget = Eigen::Isometry3d(Eigen::Translation3d(graspDist,-graspWidth-0.1, graspHeight));
+					
+					robot.move_to_pose(leftTarget,rightTarget,shortTime);
 
-					robot.move_object(Eigen::Isometry3d(Eigen::Translation3d(graspDist,-0.1,graspHeight)),
-					                  shortTime);
+//					robot.move_object(Eigen::Isometry3d(Eigen::Translation3d(graspDist,-0.1,graspHeight)),
+//					                  shortTime);
 
 					yarp::os::Time::delay(shortTime);
 				}
@@ -382,7 +408,30 @@ int main(int argc, char *argv[])
 					else
 					{
 						output.addString("Girare");
-
+						
+						std::vector<Eigen::Isometry3d> leftPoses;
+						leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth+0.10,graspHeight+0.00)));
+						leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth+0.00,graspHeight+0.15)));
+						leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth-0.10,graspHeight+0.00)));
+						leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth+0.00,graspHeight-0.10)));
+						leftPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, graspWidth+0.00,graspHeight+0.00)));
+						
+						std::vector<Eigen::Isometry3d> rightPoses;
+						rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth+0.10,graspHeight+0.00)));
+						rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth+0.00,graspHeight+0.15)));
+						rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth-0.10,graspHeight+0.00)));
+						rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth+0.00,graspHeight-0.10)));
+						rightPoses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist,-graspWidth+0.00,graspHeight+0.00)));
+						
+						std::vector<double> times;
+						times.push_back(1.0*shortTime);
+						times.push_back(2.0*shortTime);
+						times.push_back(3.0*shortTime);
+						times.push_back(4.0*shortTime);
+						times.push_back(5.0*shortTime);
+						
+						robot.move_to_poses(leftPoses,rightPoses,times);
+/*
 						std::vector<Eigen::Isometry3d> poses;
 						poses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, 0.10,graspHeight+0.00)));
 						poses.push_back(Eigen::Isometry3d(Eigen::Translation3d(torsoDist, 0.00,graspHeight+0.15)));
@@ -398,9 +447,10 @@ int main(int argc, char *argv[])
 						times.push_back(5.0*shortTime);
 
 						robot.move_object(poses,times);
+*/	
 					}
 				}
-				else if(command == "spin")
+/*				else if(command == "spin")
 				{
 					if(not robot.is_grasping())
 					{
@@ -425,6 +475,7 @@ int main(int argc, char *argv[])
 						robot.move_object(poses,times);
 					}
 				}
+*/
 				else if(command == "stop")
 				{
 					output.addString("Fermare");
@@ -433,9 +484,14 @@ int main(int argc, char *argv[])
 				else if(command == "up")
 				{
 					output.addString("Su");
+					
+					Eigen::Isometry3d leftTarget  = Eigen::Isometry3d(Eigen::Translation3d(graspDist, graspWidth, graspHeight+0.1));
+					Eigen::Isometry3d rightTarget = Eigen::Isometry3d(Eigen::Translation3d(graspDist,-graspWidth, graspHeight+0.1));
+					
+					robot.move_to_pose(leftTarget,rightTarget,shortTime);
 
-					robot.move_object(Eigen::Isometry3d(Eigen::Translation3d(graspDist,0.0,graspHeight+0.1)),
-					                  shortTime);
+//					robot.move_object(Eigen::Isometry3d(Eigen::Translation3d(graspDist,0.0,graspHeight+0.1)),
+//					                  shortTime);
 
 					yarp::os::Time::delay(shortTime);
 				}
