@@ -106,6 +106,8 @@ void iCub2::run()
 	update_state();                                                                             // Update kinematics, dynamics, constraints
 	
 	double elapsedTime = yarp::os::Time::now() - this->startTime;                               // Time since start of control loop
+
+	if(elapsedTime >= this->endTime) this->isFinished = true;
 	
 	if(this->controlSpace == joint)
 	{
