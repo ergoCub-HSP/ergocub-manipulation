@@ -196,7 +196,7 @@ void iCub2::run()
 			// Set up the new start point for the solver
 			startPoint.resize(6+this->n);
 			startPoint.head(6)  = (Jc*this->Mdecomp.inverse()*Jc.transpose())*Jc*dq;    // Lagrange multipliers
-			startPoint.tail(12) = dq;                                                   // Previous solution
+			startPoint.tail(this->n) = dq;                                                   // Previous solution
 			
 			// H = [ 0   Jc ]
 			//     [ Jc' M  ]
