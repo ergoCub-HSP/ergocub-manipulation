@@ -199,7 +199,7 @@ int main(int argc, char *argv[])
 
 						// robot.move_object(Eigen::Isometry3d(Eigen::Translation3d(graspRest,0.0,graspHeight)),2.0);
 
-						if (block)  yarp::os::Time::delay(shortTime);
+						//if (block)  yarp::os::Time::delay(shortTime);
 					}
 				}
 				else if(command == "egrasprlc")
@@ -299,7 +299,7 @@ int main(int argc, char *argv[])
 					output.addString("Casa");
 					robot.move_to_position(home,shortTime);
 
-			    		if (block) yarp::os::Time::delay(shortTime);
+			    		//if (block) yarp::os::Time::delay(shortTime);
 				}
 				else if(command == "in")
 				{
@@ -326,7 +326,7 @@ int main(int argc, char *argv[])
 					output.addString("Pronto");
 					robot.move_to_position(ready,shortTime);
 
-                    			yarp::os::Time::delay(shortTime);
+                    			//yarp::os::Time::delay(shortTime);
 				}
 				else if(command == "scissor")
 				{
@@ -359,7 +359,7 @@ int main(int argc, char *argv[])
 					output.addString("Piacere");
 					robot.move_to_position(shake,shortTime);
 
-					if (block) yarp::os::Time::delay(shortTime);
+					//if (block) yarp::os::Time::delay(shortTime);
 				}
 				else if(command == "stop")
 				{
@@ -377,18 +377,18 @@ int main(int argc, char *argv[])
 					wave.push_back(wave2);
 					wave.push_back(wave1);
 					wave.push_back(wave2);
-					wave.push_back(home);
+					//wave.push_back(home);
 
 					std::vector<double> times;
 					times.push_back(1.0*shortTime);
 					times.push_back(1.5*shortTime);
 					times.push_back(2.0*shortTime);
 					times.push_back(2.5*shortTime);
-					times.push_back(4.0*shortTime);
+					//times.push_back(4.0*shortTime);
 
 					robot.move_to_positions(wave,times);
 
-                    			if (block) yarp::os::Time::delay(4.0*shortTime);
+                    			//if (block) yarp::os::Time::delay(4.0*shortTime);
 				}
 				else 	output.addString("Cosa");
 			}
@@ -483,7 +483,7 @@ int main(int argc, char *argv[])
 
 						robot.move_to_position(ready,shortTime);            // Move to ready configuration
 
-						if (block) yarp::os::Time::delay(4.0*shortTime);
+						//if (block) yarp::os::Time::delay(4.0*shortTime);
 					}
 				}
 				else if(command == "right")
