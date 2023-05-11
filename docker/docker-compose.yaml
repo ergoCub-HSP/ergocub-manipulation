@@ -1,0 +1,51 @@
+version: '2.3'
+
+x-base: &base
+  image: ar0s/ergocub-manipulation
+  environment:
+    - DISPLAY=:0
+    - QT_X11_NO_MITSHM=1
+    - XDG_RUNTIME_DIR=/root/1000
+    - XAUTHORITY=/root/.Xauthority
+    - DBUS_SESSION_BUS_ADDRESS=unix:path=/run/root/1000/bus
+  volumes:
+    - "/etc/timezone:/etc/timezone:ro"
+    - "/etc/localtime:/etc/localtime:ro"
+    - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
+    - "${XAUTHORITY}:/root/.Xauthority:rw"
+    - "/run/btuc/1000/bus:/run/root/1000/bus"
+
+    - "/home/aros/projects/ergocub/ergocub-manipulation:/root/ergocub-manipulation"
+  network_mode: host
+  ipc: host
+  pid: host
+  security_opt:
+    - apparmor:unconfined
+
+#
+services:
+
+  yarpserver:
+    <<: *base
+    command: bash -c "source /robotology-superbuild/build/install/share/robotology-superbuild/setup.sh && yarpserver"
+
+  gazebo:
+    <<: *base
+    command: bash -c "source /robotology-superbuild/build/install/share/robotology-superbuild/setup.sh && yarp detect --write && gazebo ~/ergocub-manipulation/gazebo/worlds/grasp-demo.sdf"
+#    depends_on:
+#      - yarpserver
+
+  manip:
+    <<: *base
+    command: bash -c "source /robotology-superbuild/build/install/share/robotology-superbuild/setup.sh && yarp detect --write && cd /root/ergocub-manipulation/build/bin && ./grasp-demo /robotology-superbuild/build/install/share/iCub/robots/iCubGazeboV2_7/model.urdf"
+    depends_on:
+      - gazebo
+#      - yarpserver
+
+  bash:
+    <<: *base
+    stdin_open: true # docker run -i
+    tty: true
+    command: bash  # -c "source /robotology-superbuild/build/install/share/robotology-superbuild/setup.sh && yarp detect --write && bash "
+#    depends_on:
+#      - demo

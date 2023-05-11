@@ -1,6 +1,7 @@
 #!/bin/bash
 
-SESSION="bimanual"                                                                          # MUST match name in start.sh
+TMUX_NAME=manipulation-tmux
+DOCKER_CONTAINER_NAME=ergocub_manipulation_container
 
-tmux kill-session -t $SESSION                                                               # Kill all tmux sessions with the associated name
-killall -9 gzserver                                                                         # Make sure Gazebo stops
+docker rm -f $DOCKER_CONTAINER_NAME
+tmux kill-session -t $TMUX_NAME
