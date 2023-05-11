@@ -1,60 +1,68 @@
 #!/bin/bash
 
-SESSION="bimanual"                                                                       # So we can reference $SESSION later
-SERVERNAME="/commandServer"
+# Change name also in stop.sh
+TMUX_NAME=manipulation-tmux
+DOCKER_CONTAINER_NAME=ergocub_manipulation_container
 
-# Options
-#CONFIG="~/workspace/icub-bimanual/config/ergocub.ini"
-#PORT="/ergocubSim"
-#URDF="~/workspace/robotology-superbuild/src/ergocub-software/urdf/ergoCub/robots/ergoCubGazeboV1/model.urdf"
-#WORLD="~/workspace/icub-bimanual/gazebo/worlds/ergocub_grasp_demo.sdf"
+echo "Start this script inside the ergoCub visual perception rooot folder"
+usage() { echo "Usage: $0 [-i ip_address] [-y (to start yarp server]" 1>&2; exit 1; }
 
-CONFIG="~/workspace/icub-bimanual/config/icub2.ini"                                                             
-PORT="/icubSim"                                                                          # Port name
-URDF="~/workspace/robotology-superbuild/src/icub-models/iCub/robots/iCubGazeboV2_7/model.urdf"
-WORLD="~/workspace/icub-bimanual/gazebo/worlds/icub2_grasp_demo.sdf"                     # Location of the Gazebo world
+while getopts i:yh flag
+do
+    case "${flag}" in
+        i) SERVER_IP=${OPTARG};;
+        y) START_YARP_SERVER='1';;
+        h) usage;;
+        *) usage;;
+    esac
+done
 
-if pgrep -x gzserver >/dev/null
-	then
-		echo "Gazebo server is still running!"
-		killall -9 gzserver
+# Start the container with the right options
+docker run -itd --rm --network=host \
+  --env DISPLAY=:0 --env QT_X11_NO_MITSHM=1 --env XDG_RUNTIME_DIR=/root/1000 --env XAUTHORITY=/root/.Xauthority \
+  -v /tmp/.X11-unix:/tmp/.X11-unix:rw -v "${XAUTHORITY}":/root/.Xauthority:rw \
+  -v "$(pwd)":/root/ergocub-manipulation \
+  --name $DOCKER_CONTAINER_NAME \
+  ar0s/ergocub-manipulation bash
+
+# Create tmux session
+tmux new-session -d -s $TMUX_NAME
+
+# Set server
+tmux send-keys -t $TMUX_NAME "docker exec -it $DOCKER_CONTAINER_NAME bash" Enter
+if [ -n "$SERVER_IP" ] # Variable is non-null
+then
+  tmux send-keys -t $TMUX_NAME "yarp namespace ergocub00" Enter
+  tmux send-keys -t $TMUX_NAME "yarp conf $SERVER_IP 10000" Enter
+else
+  if [ -n "$START_YARP_SERVER" ]
+  then
+    tmux send-keys -t $TMUX_NAME "yarpserver --write" Enter
+  else 
+    tmux send-keys -t $TMUX_NAME "yarp detect --write" Enter
+  fi
 fi
 
-# Create first window & panel  
-tmux new-session -d -s $SESSION                                                          # Start new session with given name
-tmux rename-window -t 0 'Main'                                                           # Give a name to this window
+tmux split-window -h -t $TMUX_NAME
 
-# Divide up the screen (default pane 0)
-#######################################
-#                  #         2        #
-#        0         #                  #
-#                  ####################
-#                  #                  #
-####################         3        #
-#                  #                  #
-#        1         ####################
-#                  #         4        #
-#                  #                  #
-#######################################
-tmux split-window -h                                                                     # Pane 2
-tmux split-window -v                                                                     # Pane 3
-tmux resize-pane -U 5                                                                    # Move it up
-tmux split-window -v                                                                     # Pane 4
-tmux resize-pane -U 5                                                                    # Make the panel a little bigger
-tmux select-pane -t 0                                                                    # Go back to 0
-tmux split-window -v                                                                     # Pane 1
+# Start Gazebo with iCub
+tmux send-keys -t $TMUX_NAME "docker exec -it $DOCKER_CONTAINER_NAME bash" Enter
+tmux send-keys -t $TMUX_NAME "gazebo ~/ergocub-manipulation/gazebo/worlds/ergocub_grasp_demo.sdf" Enter
+tmux select-pane -t $TMUX_NAME:0.0
+tmux split-window -v -t $TMUX_NAME
 
-# Split window and run YARP
-tmux select-pane -t 2
-tmux send-keys -t $SESSION "yarpserver --write" Enter                                    # Start up yarp
+# Start grasping script
+tmux send-keys -t $TMUX_NAME "docker exec -it $DOCKER_CONTAINER_NAME bash" Enter
+tmux send-keys -t $TMUX_NAME "cd /root/ergocub-manipulation/build/bin" Enter
+tmux send-keys -t $TMUX_NAME "sleep 10" Enter
+tmux send-keys -t $TMUX_NAME "./ergocub_grasp_demo /ergocubSim /robotology-superbuild/build/install/share/ergoCub/robots/ergoCubGazeboV1/model.urdf" Enter
+tmux select-pane -t $TMUX_NAME:0.2
+tmux split-window -v -t $TMUX_NAME
 
-# Split right pane, launch GAZEBO
-tmux select-pane -t 3
-tmux send-keys -t $SESSION "gazebo $WORLD" Enter                                         # Launch the given sdf file
+# Start bash for fun
+tmux send-keys -t $TMUX_NAME "docker exec -it $DOCKER_CONTAINER_NAME bash" Enter
+tmux send-keys -t $TMUX_NAME "sleep 12" Enter
+tmux send-keys -t $TMUX_NAME "yarp rpc /Components/Manipulation" Enter
 
-# Split the pane, launch the command server
-tmux select-pane -t 4
-tmux send-keys -t $SESSION "~/workspace/icub-bimanual/build/bin/command_server $SERVERNAME $PORT $URDF $CONFIG" Enter
-
-tmux attach-session -t $SESSION:0                                                        # REQUIRED or the above won't execute
-
+# Attach
+tmux a -t $TMUX_NAME

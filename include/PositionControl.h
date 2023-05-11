@@ -13,88 +13,111 @@ class PositionControl : public iCubBase
 {
 	public:
 		PositionControl(const std::string              &pathToURDF,
-			        const std::vector<std::string> &jointList,
-			        const std::vector<std::string> &portList,
-			        const std::string              &robotModel)
-		:
-	        iCubBase(pathToURDF, jointList, portList, robotModel)
-	        {
-	        
-	        	// Shoulder constraints for iCub 2
-			double c = 1.71;
-			this->A = Eigen::MatrixXd::Zero(10,this->numJoints);
-			this->A.block(0,3,5,3) <<  c, -c,  0,
-						   c, -c, -c,
-						   0,  1,  1,
-						  -c,  c,  c,
-					 	   0, -1, -1;
-							   
-			this->A.block(5,10,5,3) = this->A.block(0,3,5,3);                           // Same constraint for right arm as left arm
-			
-			this->b.head(5) << 347.00*(M_PI/180),
-					   366.57*(M_PI/180),
-					    66.60*(M_PI/180),
-					   112.42*(M_PI/180),
-					   213.30*(M_PI/180);
-					   
-			this->b.tail(5) = this->b.head(5);
+			        const std::vector<std::string> &jointNames,
+			        const std::vector<std::string> &portNames,
+			        const Eigen::Isometry3d        &_torsoPose,
+			        const std::string              &robotName) :
+	        iCubBase(pathToURDF, jointNames, portNames, _torsoPose, robotName) {}
 		
-			// Bsmall = [ -I ]
-			//          [  I ]
-			//          [  A ]
-			this->Bsmall.resize(10+2*this->numJoints,this->numJoints);
-			this->Bsmall.block(                0, 0, this->numJoints, this->numJoints) = -Eigen::MatrixXd::Identity(this->numJoints,this->numJoints);
-			this->Bsmall.block(  this->numJoints, 0, this->numJoints, this->numJoints).setIdentity();
-			this->Bsmall.block(2*this->numJoints, 0,              10, this->numJoints) = this->A;
-			
-			// B = [ 0 -I ]
-			//     [ 0  I ]
-			//     [ 0  A ]
-			this->B.resize(10+2*this->numJoints,12+this->numJoints);
-			this->B.block( 0,  0, 10+2*this->numJoints,              12).setZero();
-			this->B.block( 0, 12, 10+2*this->numJoints, this->numJoints) = this->Bsmall;
-					
-	        }
-
-		//////////////////////// Inherited from iCubBase class ////////////////////////////
-		bool compute_joint_limits(double &lower, double &upper, const unsigned int &jointNum);
-		
+		// Inherited from the iCubBase class   
+		void compute_joint_limits(double &lower, double &upper, const int &i);
+			              
 		Eigen::Matrix<double,12,1> track_cartesian_trajectory(const double &time);
 		
 		Eigen::VectorXd track_joint_trajectory(const double &time);
-		///////////////////////////////////////////////////////////////////////////////////
 		
-	protected:
-	
-		Eigen::VectorXd qRef;                                                               // Reference joint position to send to motors
-
-		Eigen::Matrix<double,6,1> grasp_correction();                                       
-		
-		/////////////////////// Inherited from PeriodicThread class ///////////////////////
+		// Inherited from the yarp::PeriodicThread class
 		bool threadInit();
-		void run();
 		void threadRelease();
 		
-		//////////////////////// Methods & members specific to iCub2 //////////////////////
-		Eigen::MatrixXd A;                                                                  // Constraint matrix for the iCub2
-		Eigen::Matrix<double,10,1> b;                                                       // Constraint vector for the iCub2
-		Eigen::MatrixXd B;
-		Eigen::MatrixXd Bsmall;
-		
-		Eigen::VectorXd icub2_cartesian_control(const Eigen::Matrix<double,12,1> &dx,
-		                                        const Eigen::VectorXd &redundantTask,
-		                                        const Eigen::VectorXd &lowerBound,
-		                                        const Eigen::VectorXd &upperBound);
-		
-		Eigen::VectorXd icub2_dls(const Eigen::Matrix<double,12,1> &dx,
-		                          const double &manipulability,
-		                          const Eigen::VectorXd &lowerBound,
-		                          const Eigen::VectorXd &upperBound);
-		                          
-		Eigen::Matrix<double,12,1> lagrange_multipliers(const Eigen::Matrix<double,12,1> &dx,
-                                                                const Eigen::VectorXd &redundantTask);
-		
+	protected:
+		Eigen::VectorXd qRef;                                                               // Reference joint position to send to motors
 		
 };                                                                                                  // Semicolon needed after class declaration
+
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+ //                             Compute instantenous position limits                               //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void PositionControl::compute_joint_limits(double &lower, double &upper, const int &i)
+{
+	lower = this->pLim[i][0] - this->qRef[i];
+	upper = this->pLim[i][1] - this->qRef[i];
+}
+
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+ //                                 Initialise the control thread                                  //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+bool PositionControl::threadInit()
+{
+	this->isFinished = false;                                                                   
+	this->qRef = this->q;                                                                       // Use current joint configuration as reference point
+	this->startTime = yarp::os::Time::now();
+	return true;
+	// jump immediately to run();
+}
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+ //                             Executed after a control thread is stopped                         //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+void PositionControl::threadRelease()
+{
+	for(int i = 0; i < this->n; i++) send_joint_command(i,this->q[i]);                          // Maintain current joint position
+}
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+ //                        Solve a discrete time step for Cartesian control                        //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+Eigen::Matrix<double,12,1> PositionControl::track_cartesian_trajectory(const double &time)
+{
+	// Variables used in this scope
+	Eigen::Matrix<double,12,1> dx; dx.setZero();                                                // Value to be returned
+	Eigen::Isometry3d pose;                                                                     // Desired pose
+	Eigen::Matrix<double,6,1> vel, acc;
+	double gain = 0.005;
+	
+/*	if(this->isGrasping)
+	{
+		this->payloadTrajectory.get_state(pose,vel,acc,time);
+
+		dx = this->G.transpose()*( this->dt*vel + gain*pose_error(pose,this->payload.pose()) );
+	}
+	else
+	{*/
+		if(this->leftControl)
+		{
+			this->leftTrajectory.get_state(pose,vel,acc,time);
+
+			dx.head(6) = this->dt*vel + gain*pose_error(pose,this->leftPose);
+		}
+
+		if(this->rightControl)
+		{
+			this->rightTrajectory.get_state(pose,vel,acc,time);
+
+			dx.tail(6) = this->dt*vel + gain*pose_error(pose,this->rightPose);
+		}
+//	}
+	
+	return dx;
+}
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+ //                     Solve the step size to track the joint trajectory                          //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+Eigen::VectorXd PositionControl::track_joint_trajectory(const double &time)
+{
+	Eigen::VectorXd dq(this->n); dq.setZero();                                                  // Value to be returned
+	
+	for(int i = 0; i < this->n; i++)
+	{
+		dq[i] = this->jointTrajectory[i].evaluatePoint(time) - this->q[i];                  
+		
+//		dq[i] = this->jointTrajectory[i].evaluatePoint(time) - this->qHat[i];
+	}
+	
+	return dq;
+}
 
 #endif
